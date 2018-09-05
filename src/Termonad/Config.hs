@@ -66,15 +66,11 @@ $(makeLensesFor
 
 data ColourConfig c = ColourConfig
   { cursorColour :: !c
-  , foregroundColour :: !c
-  , backgroundColour :: !c
   , palette :: ![c]
   } deriving (Eq, Show, Functor)
 
 $(makeLensesFor
     [ ("cursorColour", "lensCursorColour")
-    , ("foregroundColour", "lensForegroundColour")
-    , ("backgroundColour", "lensBackgroundColour")
     , ("palette", "lensPalette")
     ]
     ''ColourConfig
@@ -83,17 +79,17 @@ $(makeLensesFor
 defaultColourConfig :: ColourConfig (Colour Double)
 defaultColourConfig = ColourConfig
   { cursorColour = sRGB24 192 192 192 -- lightgrey
-  , foregroundColour = sRGB24 192 192 192 -- lightgrey
-  , backgroundColour = sRGB24   0   0   0 -- black
   , palette =
-    [ sRGB24   0   0   0 -- 00: black
+    -- [ sRGB24   0   0   0 -- 00: black
+    [ sRGB24 255 255 255
     , sRGB24 192   0   0 -- 01: red
     , sRGB24   0 192   0 -- 02: green
     , sRGB24 192 192   0 -- 03: yellow
     , sRGB24   0   0 192 -- 04: blue
     , sRGB24 192   0 192 -- 05: purple
     , sRGB24   0 192 192 -- 06: cyan
-    , sRGB24 192 192 192 -- 07: lightgrey
+    -- , sRGB24 192 192 192 -- 07: lightgrey
+    , sRGB24   0   0   0
     , sRGB24  63  63  63 -- 08: grey
     , sRGB24 255  63  63 -- 09: lightred
     , sRGB24  63 255  63 -- 10: lightgreen

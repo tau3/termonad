@@ -75,6 +75,8 @@ import GI.Vte
   , terminalNew
   , terminalSetCursorBlinkMode
   , terminalSetColors
+  , terminalSetColorBackground
+  , terminalSetColorForeground
   , terminalSetColorCursor
   , terminalSetFont
   , terminalSetScrollbackLines
@@ -284,10 +286,7 @@ createTerm handleKeyPress mvarTMState = do
   let colourConf = colourConfig tmStateConfig
       mGetRGBA accessor = Just <$> toRGBA (accessor colourConf)
   terminalSetColorCursor vteTerm =<< mGetRGBA cursorColour
-  join $ terminalSetColors vteTerm
-    <$> mGetRGBA foregroundColour
-    <*> mGetRGBA backgroundColour
-    <*> (Just <$> traverse toRGBA (palette colourConf))
+  terminalSetColors vteTerm Nothing Nothing . Just =<< traverse toRGBA (palette colourConf)
   terminalSetCursorBlinkMode vteTerm CursorBlinkModeOn
   widgetShow vteTerm
   widgetGrabFocus $ vteTerm
