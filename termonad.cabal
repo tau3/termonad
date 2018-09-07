@@ -88,6 +88,9 @@ library
                      , TypeOperators
                      , DeriveFunctor
   other-extensions:    TemplateHaskell
+                     , UndecidableInstances
+                     , DeriveFoldable
+                     , StandaloneDeriving
   pkgconfig-depends:   gtk+-3.0
 
 executable termonad

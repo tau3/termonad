@@ -1,4 +1,9 @@
+{-# OPTIONS_GHC -freduction-depth=0 #-}
+
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Termonad.Config where
 
@@ -7,6 +12,9 @@ import Termonad.Prelude
 import Control.Lens (makeLensesFor, makePrisms)
 import Data.Colour (Colour)
 import Data.Colour.SRGB (sRGB24)
+
+import qualified Data.Foldable
+import GHC.TypeNats
 
 -- | The font size for the Termonad terminal.  There are two ways to set the
 -- fontsize, corresponding to the two different ways to set the font size in
@@ -64,11 +72,43 @@ $(makeLensesFor
     ''FontConfig
  )
 
+data INat = Z | S INat
+
+type family FromLit (n :: Nat) :: INat where
+  FromLit 0 = 'Z
+  FromLit n = 'S (FromLit (n - 1))
+
+data Vec :: INat -> * -> * where
+  Empty :: Vec 'Z c
+  (:~) :: c -> Vec n c -> Vec ('S n) c
+
+infixr 6 :~
+
+deriving instance Eq c => Eq (Vec n c)
+deriving instance Show c => Show (Vec n c)
+deriving instance Functor (Vec n)
+deriving instance Foldable (Vec n)
+
+data Palette c
+  = Palette0
+  | Palette8 (Vec (FromLit 8) c)
+  | Palette16 (Vec (FromLit 16) c)
+  | Palette232 (Vec (FromLit 232) c)
+  | Palette256 (Vec (FromLit 256) c)
+  deriving (Eq, Show, Functor, Foldable)
+
+paletteToList :: Palette c -> [c]
+paletteToList = Data.Foldable.toList
+
+-- | NB: Currently due to issues either with VTE or the bindings generated for
+--   Haskell, background colour cannot be set independently of the palette.
+--   The @backgroundColour@ field will be ignored and the 0th colour in the
+--   palette (usually black) will be used as the background colour.
 data ColourConfig c = ColourConfig
   { cursorColour :: !c
   , foregroundColour :: !c
   , backgroundColour :: !c
-  , palette :: ![c]
+  , palette :: !(Palette c)
   } deriving (Eq, Show, Functor)
 
 $(makeLensesFor
@@ -85,24 +125,24 @@ defaultColourConfig = ColourConfig
   { cursorColour = sRGB24 192 192 192 -- lightgrey
   , foregroundColour = sRGB24 192 192 192 -- lightgrey
   , backgroundColour = sRGB24   0   0   0 -- black
-  , palette =
-    [ sRGB24   0   0   0 -- 00: black
-    , sRGB24 192   0   0 -- 01: red
-    , sRGB24   0 192   0 -- 02: green
-    , sRGB24 192 192   0 -- 03: yellow
-    , sRGB24   0   0 192 -- 04: blue
-    , sRGB24 192   0 192 -- 05: purple
-    , sRGB24   0 192 192 -- 06: cyan
-    , sRGB24 192 192 192 -- 07: lightgrey
-    , sRGB24  63  63  63 -- 08: grey
-    , sRGB24 255  63  63 -- 09: lightred
-    , sRGB24  63 255  63 -- 10: lightgreen
-    , sRGB24 255 255  63 -- 11: lightyellow
-    , sRGB24  63  63 255 -- 12: lightblue
-    , sRGB24 255  63 255 -- 13: lightpurple
-    , sRGB24  63 255 255 -- 14: lightcyan
-    , sRGB24 255 255 255 -- 15: white
-    ]
+  , palette = Palette16
+    $  sRGB24   0   0   0 -- 00: black
+    :~ sRGB24 192   0   0 -- 01: red
+    :~ sRGB24   0 192   0 -- 02: green
+    :~ sRGB24 192 192   0 -- 03: yellow
+    :~ sRGB24   0   0 192 -- 04: blue
+    :~ sRGB24 192   0 192 -- 05: purple
+    :~ sRGB24   0 192 192 -- 06: cyan
+    :~ sRGB24 192 192 192 -- 07: lightgrey
+    :~ sRGB24  63  63  63 -- 08: grey
+    :~ sRGB24 255  63  63 -- 09: lightred
+    :~ sRGB24  63 255  63 -- 10: lightgreen
+    :~ sRGB24 255 255  63 -- 11: lightyellow
+    :~ sRGB24  63  63 255 -- 12: lightblue
+    :~ sRGB24 255  63 255 -- 13: lightpurple
+    :~ sRGB24  63 255 255 -- 14: lightcyan
+    :~ sRGB24 255 255 255 -- 15: white
+    :~ Empty
   }
 
 data ShowScrollbar
