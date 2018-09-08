@@ -1,5 +1,6 @@
-{-# OPTIONS_GHC -freduction-depth=0 #-}
+-- {-# OPTIONS_GHC -freduction-depth=0 #-}
 
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE DeriveFoldable #-}
@@ -12,9 +13,9 @@ import Termonad.Prelude
 import Control.Lens (makeLensesFor, makePrisms)
 import Data.Colour (Colour)
 import Data.Colour.SRGB (sRGB24)
-
 import qualified Data.Foldable
-import GHC.TypeNats
+import GHC.TypeNats (type (+), Nat)
+import Unsafe.Coerce (unsafeCoerce)
 
 -- | The font size for the Termonad terminal.  There are two ways to set the
 -- fontsize, corresponding to the two different ways to set the font size in
@@ -72,29 +73,27 @@ $(makeLensesFor
     ''FontConfig
  )
 
-data INat = Z | S INat
-
-type family FromLit (n :: Nat) :: INat where
-  FromLit 0 = 'Z
-  FromLit n = 'S (FromLit (n - 1))
-
-data Vec :: INat -> * -> * where
-  Empty :: Vec 'Z c
-  (:~) :: c -> Vec n c -> Vec ('S n) c
+data Vec :: Nat -> * -> * where
+  Empty :: Vec 0 c
+  (:~) :: c -> Vec n c -> Vec (n + 1) c
 
 infixr 6 :~
 
-deriving instance Eq c => Eq (Vec n c)
+instance Eq c => Eq (Vec n c) where
+  Empty == Empty = True
+  (c1 :~ v1) == (c2 :~ v2) = c1 == c2 && v1 == unsafeCoerce v2
+  _ == _ = error "this can never happen"
+
 deriving instance Show c => Show (Vec n c)
 deriving instance Functor (Vec n)
 deriving instance Foldable (Vec n)
 
 data Palette c
   = Palette0
-  | Palette8 (Vec (FromLit 8) c)
-  | Palette16 (Vec (FromLit 16) c)
-  | Palette232 (Vec (FromLit 232) c)
-  | Palette256 (Vec (FromLit 256) c)
+  | Palette8 (Vec 8 c)
+  | Palette16 (Vec 16 c)
+  | Palette232 (Vec 232 c)
+  | Palette256 (Vec 256 c)
   deriving (Eq, Show, Functor, Foldable)
 
 paletteToList :: Palette c -> [c]
