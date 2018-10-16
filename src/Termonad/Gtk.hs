@@ -53,6 +53,6 @@ appNew appName appFlags = do
 -- happen if they are actually the same thing.
 widgetEq :: (MonadIO m, IsWidget a, IsWidget b) => a -> b -> m Bool
 widgetEq a b = do
-  (Widget (ManagedPtr ptrA _)) <- toWidget a
-  (Widget (ManagedPtr ptrB _)) <- toWidget b
+  (Widget (ManagedPtr ptrA _ _)) <- toWidget a
+  (Widget (ManagedPtr ptrB _ _)) <- toWidget b
   pure $ ptrA == ptrB
