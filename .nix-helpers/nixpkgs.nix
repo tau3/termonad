@@ -12,7 +12,14 @@ let
     sha256 = "03n4bacfk1bbx3v0cx8xcgcmz44l0knswzh7hwih9nx0hj3x41yc";
   };
 
-  # We override some default values in the ./termonad.nix derivation.  This
+  # The ./termonad.nix derivation has been generated with `cabal2nix`.
+  # It can be updated with the following command:
+  #
+  # ```sh
+  # $ cabal2nix .. > termonad.nix
+  # ```
+  #
+  # Below, we override some default values in the ./termonad.nix derivation.  This
   # allows us to directly use the ./termonad.nix generated with cabal2nix
   # without having to manually change things in that file.
   termonadOverride = stdenvLib: gnome3: haskellCallPackage: overrideCabal:
@@ -25,6 +32,7 @@ let
       # For some reason the doctests fail when running with nix.
       # https://github.com/cdepillabout/termonad/issues/15
       doCheck = false;
+      # Filter some unnecessary files from the src.
       src =
         builtins.filterSource
           (path: type: with stdenvLib;
