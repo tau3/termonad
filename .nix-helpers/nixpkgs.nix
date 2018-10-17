@@ -28,7 +28,7 @@ let
         inherit (gnome3) gtk3;
       };
     in
-    overrideCabal termonad (oldArgs: {
+    overrideCabal termonad (oldAttrs: {
       # For some reason the doctests fail when running with nix.
       # https://github.com/cdepillabout/termonad/issues/15
       doCheck = false;
