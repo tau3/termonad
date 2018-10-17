@@ -8,10 +8,7 @@
 mkDerivation {
   pname = "termonad";
   version = "0.2.1.0";
-  src = builtins.filterSource (path: type: with stdenv.lib;
-    ! elem (baseNameOf path) [ ".git" "result" ".stack-work" ] &&
-    ! any (flip hasPrefix (baseNameOf path)) [ "dist" ".ghc" ]
-  ) ./..;
+  src = ./..;
   isLibrary = true;
   isExecutable = true;
   enableSeparateDataOutput = true;
