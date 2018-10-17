@@ -1,5 +1,5 @@
 # This is the shell file specified in the stack.yaml file.
-# This forces stack to use ghc-8.0.2 and stack-lts-9.yaml to compile termonad.
+# This runs stack commands in an environment created with nix.
 
 let
   # recent version of nixpkgs as of 2018-10-17
